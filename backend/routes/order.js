@@ -1,19 +1,48 @@
 // dotenv is loaded by server.js — no need to load again here
 const express = require('express');
 const multer  = require('multer');
-const nodemailer = require('nodemailer');
 
 const router = express.Router();
 
 // ── Multer Memory Storage (Vercel-compatible) ─────────────────────────────────
-// Files are stored in memory as Buffer objects — no disk writes needed.
-// They are attached directly to the outgoing email.
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB per file
 });
 
+// ── Helper: Send email via Resend HTTP API ────────────────────────────────────
+// Resend uses HTTPS (not SMTP), so it works on Vercel without port issues.
+async function sendViaResend({ to, subject, html, attachments = [] }) {
+  const body = {
+    from: 'contactforservices <onboarding@resend.dev>',
+    to: Array.isArray(to) ? to : [to],
+    subject,
+    html,
+  };
 
+  // Attach files as base64 if any
+  if (attachments.length > 0) {
+    body.attachments = attachments.map((f) => ({
+      filename: f.originalname,
+      content:  f.buffer.toString('base64'),
+    }));
+  }
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method:  'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type':  'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Resend error ${res.status}: ${err}`);
+  }
+  return res.json();
+}
 
 // ── Helper: Price Labels ───────────────────────────────────────────────────────
 const PRICE_TABLE = {
@@ -32,26 +61,9 @@ function getPrice(service, deliveryTime) {
 
 // ── POST /api/order ────────────────────────────────────────────────────────────
 router.post('/', upload.array('files', 10), async (req, res) => {
-  // Create transporter inside handler so env vars are always read fresh
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-
   const { name, email, phone, service, deliveryTime, topic, description } = req.body;
   const files = req.files || [];
   const price = getPrice(service, deliveryTime);
-
-  // Build attachment list for nodemailer (buffer-based — works on Vercel)
-  const attachments = files.map((f) => ({
-    filename: f.originalname,
-    content:  f.buffer,        // memory storage gives us a Buffer
-  }));
 
   const deliveryLabel = {
     '1day': '1 Day', halfday: 'Half Day', '1hour': '1 Hour', '30min': '30 Minutes',
@@ -93,17 +105,14 @@ router.post('/', upload.array('files', 10), async (req, res) => {
       </div>
       <div style="padding:28px 32px;color:#1a1a2e;">
         <p style="font-size:16px;">Hi <strong>${name}</strong>,</p>
-        <p style="font-size:15px;line-height:1.6;">We've received your order and our team will begin working on it right away. Here's a summary of your request:</p>
+        <p style="font-size:15px;line-height:1.6;">We've received your order and our team will begin working on it right away. Here's a summary:</p>
         <div style="background:#fff8e7;border-radius:10px;padding:20px;margin:20px 0;border-left:4px solid #f5c518;">
           <p style="margin:0 0 8px;"><strong>Service:</strong> ${service}</p>
           <p style="margin:0 0 8px;"><strong>Topic:</strong> ${topic}</p>
           <p style="margin:0 0 8px;"><strong>Delivery Time:</strong> ${deliveryLabel}</p>
           <p style="margin:0;"><strong>Price:</strong> <span style="color:#e63946;font-weight:700;font-size:18px;">${price}</span></p>
         </div>
-        <p style="font-size:15px;line-height:1.6;">We'll contact you at <strong>${email}</strong> or <strong>${phone}</strong> with updates. If you have any questions, just reply to this email.</p>
-        <div style="text-align:center;margin-top:28px;">
-          <div style="display:inline-block;background:linear-gradient(135deg,#f5c518,#e8a800);padding:12px 32px;border-radius:8px;font-weight:700;color:#1a1a2e;font-size:15px;">🚀 We're on it!</div>
-        </div>
+        <p style="font-size:15px;line-height:1.6;">We'll contact you at <strong>${email}</strong> or <strong>${phone}</strong> with updates.</p>
       </div>
       <div style="background:#f5c518;padding:16px 32px;text-align:center;">
         <p style="margin:0;color:#1a1a2e;font-size:13px;">contactforservices | Chill the College Life. We Handle the Work.</p>
@@ -112,27 +121,25 @@ router.post('/', upload.array('files', 10), async (req, res) => {
   `;
 
   try {
-    // Send admin email
-    await transporter.sendMail({
-      from: `"contactforservices" <${process.env.SMTP_USER}>`,
-      to: process.env.ADMIN_EMAIL,
-      subject: `🆕 New Order: ${service} — ${name}`,
-      html: adminHtml,
-      attachments,
+    // Send admin notification (with file attachments)
+    await sendViaResend({
+      to:          process.env.ADMIN_EMAIL,
+      subject:     `🆕 New Order: ${service} — ${name}`,
+      html:        adminHtml,
+      attachments: files,
     });
 
-    // Send user confirmation email
-    await transporter.sendMail({
-      from: `"contactforservices" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: `✅ Order Confirmed — contactforservices`,
-      html: userHtml,
+    // Send user confirmation (no attachments)
+    await sendViaResend({
+      to:      email,
+      subject: '✅ Order Confirmed — contactforservices',
+      html:    userHtml,
     });
 
-    res.json({ success: true, message: 'Order placed successfully! Check your email for confirmation.' });
+    res.json({ success: true, message: 'Order placed! Check your email for confirmation.' });
   } catch (err) {
-    console.error('Email error:', err);
-    res.status(500).json({ success: false, message: 'Order saved but email delivery failed. We will contact you shortly.' });
+    console.error('Email error:', err.message);
+    res.status(500).json({ success: false, message: `Order received but email failed: ${err.message}` });
   }
 });
 
