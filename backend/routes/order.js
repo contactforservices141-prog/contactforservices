@@ -1,4 +1,4 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+// dotenv is loaded by server.js — no need to load again here
 const express = require('express');
 const multer  = require('multer');
 const nodemailer = require('nodemailer');
@@ -14,16 +14,6 @@ const upload = multer({
 });
 
 
-// ── Nodemailer Transporter ─────────────────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
 
 // ── Helper: Price Labels ───────────────────────────────────────────────────────
 const PRICE_TABLE = {
@@ -42,6 +32,17 @@ function getPrice(service, deliveryTime) {
 
 // ── POST /api/order ────────────────────────────────────────────────────────────
 router.post('/', upload.array('files', 10), async (req, res) => {
+  // Create transporter inside handler so env vars are always read fresh
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
   const { name, email, phone, service, deliveryTime, topic, description } = req.body;
   const files = req.files || [];
   const price = getPrice(service, deliveryTime);
