@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables — NEVER commit this!
+.env
+backend/.env
+
+# Uploaded files (local only)
+backend/uploads/
+uploads/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

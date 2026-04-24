@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Place Order — contactforservices</title>
+  <meta name="description" content="Place your academic service order with contactforservices. Chill the College Life. We Handle the Work." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+</head>
+<body>
+
+  <!-- ── Navbar ──────────────────────────────────────────────────────────────── -->
+  <nav class="navbar scrolled" id="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="index.html" class="logo" aria-label="contactforservices Home">
+        <div class="logo-icon">🎓</div>
+        <div class="logo-text">contact<span>forservices</span></div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#services" id="orderNavServices">Services</a></li>
+        <li><a href="index.html#pricing" id="orderNavPricing">Pricing</a></li>
+        <li><a href="index.html#why-us" id="orderNavWhyUs">Why Us</a></li>
+        <li><a href="https://wa.me/919059418750" target="_blank" class="nav-cta" id="orderNavWA">💬 WhatsApp</a></li>
+      </ul>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <a href="index.html#services">Services</a>
+    <a href="index.html#pricing">Pricing</a>
+    <a href="index.html#why-us">Why Us</a>
+    <a href="https://wa.me/919059418750" target="_blank">💬 WhatsApp Us</a>
+  </div>
+
+  <!-- ── Order Page ───────────────────────────────────────────────────────────── -->
+  <main class="order-page" id="orderPage">
+    <div class="order-container">
+
+      <div class="order-header">
+        <span class="section-tag">📋 New Order</span>
+        <h1 class="section-title" id="orderPageTitle">Place Your Order</h1>
+        <p class="section-subtitle" style="margin:0 auto;text-align:center;">
+          Fill in your details below and we'll get started right away. Expect an email confirmation within minutes.
+        </p>
+      </div>
+
+      <div class="order-card">
+        <form id="orderForm" novalidate>
+          <div class="form-grid">
+
+            <!-- Name -->
+            <div class="form-group">
+              <label class="form-label" for="fieldName">Full Name <span>*</span></label>
+              <input
+                type="text"
+                id="fieldName"
+                name="name"
+                class="form-input"
+                placeholder="e.g. Rahul Sharma"
+                required
+                autocomplete="name"
+              />
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label class="form-label" for="fieldEmail">Email Address <span>*</span></label>
+              <input
+                type="email"
+                id="fieldEmail"
+                name="email"
+                class="form-input"
+                placeholder="e.g. rahul@gmail.com"
+                required
+                autocomplete="email"
+              />
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+              <label class="form-label" for="fieldPhone">Phone / WhatsApp <span>*</span></label>
+              <input
+                type="tel"
+                id="fieldPhone"
+                name="phone"
+                class="form-input"
+                placeholder="e.g. 9876543210"
+                required
+                autocomplete="tel"
+              />
+            </div>
+
+            <!-- Service Type -->
+            <div class="form-group">
+              <label class="form-label" for="fieldService">Service Type <span>*</span></label>
+              <select id="fieldService" name="service" class="form-select" required>
+                <option value="">— Select a service —</option>
+                <option value="Reports">📄 Reports</option>
+                <option value="PPT">📊 PPT (Presentation)</option>
+                <option value="Abstract">📝 Abstract</option>
+                <option value="ECE Projects">🔧 ECE Projects</option>
+                <option value="Plagiarism Checking">🔍 Plagiarism Checking</option>
+              </select>
+            </div>
+
+            <!-- Delivery Time -->
+            <div class="form-group" id="deliveryGroup">
+              <label class="form-label" for="fieldDelivery">Delivery Time <span>*</span></label>
+              <select id="fieldDelivery" name="deliveryTime" class="form-select" required>
+                <option value="">— Select delivery time —</option>
+                <option value="1day">📅 1 Day</option>
+                <option value="halfday">🌗 Half Day (12 hrs)</option>
+                <option value="1hour">🕐 1 Hour</option>
+                <option value="30min">⚡ 30 Minutes</option>
+              </select>
+            </div>
+
+            <!-- Complexity (for ECE / Plagiarism) -->
+            <div class="form-group" id="complexityGroup" style="display:none;">
+              <label class="form-label" for="fieldComplexity">Complexity Level <span>*</span></label>
+              <select id="fieldComplexity" name="deliveryTime" class="form-select">
+                <option value="">— Select complexity —</option>
+                <option value="basic">🟢 Basic (₹300)</option>
+                <option value="medium">🟡 Medium (₹450)</option>
+                <option value="complex">🔴 Complex (₹600)</option>
+              </select>
+            </div>
+
+            <!-- Topic -->
+            <div class="form-group full">
+              <label class="form-label" for="fieldTopic">Topic / Title <span>*</span></label>
+              <input
+                type="text"
+                id="fieldTopic"
+                name="topic"
+                class="form-input"
+                placeholder="e.g. Smart Home Automation using IoT"
+                required
+              />
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full">
+              <label class="form-label" for="fieldDescription">Requirements & Description <span>*</span></label>
+              <textarea
+                id="fieldDescription"
+                name="description"
+                class="form-textarea"
+                placeholder="Describe your requirements in detail: word count, format, references needed, specific sections, etc."
+                required
+                rows="5"
+              ></textarea>
+            </div>
+
+            <!-- File Upload -->
+            <div class="form-group full">
+              <label class="form-label">Attach Reference Files <span style="font-weight:400;color:var(--gray-400);">(Optional)</span></label>
+              <div class="file-upload-area" id="fileUploadArea">
+                <input
+                  type="file"
+                  id="fieldFiles"
+                  name="files"
+                  multiple
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.zip,.rar,.png,.jpg,.jpeg,.xlsx,.csv"
+                  aria-label="Upload reference files"
+                />
+                <div class="upload-icon">📎</div>
+                <div class="upload-text">Click to upload or drag & drop</div>
+                <div class="upload-hint">PDF, DOC, PPT, ZIP, images — max 15MB per file • Up to 10 files</div>
+              </div>
+              <div class="file-list" id="fileList"></div>
+            </div>
+
+          </div><!-- /form-grid -->
+
+          <!-- Price Display -->
+          <div class="price-display" id="priceDisplay">
+            <div>
+              <div class="price-label">Estimated Price</div>
+              <div class="price-note" id="priceNote">Select service & delivery time</div>
+            </div>
+            <div>
+              <div class="price-value" id="priceValue">—</div>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span id="submitBtnText">🚀 Submit Order</span>
+          </button>
+
+        <p style="text-align:center;font-size:12px;color:var(--gray-400);margin-top:14px;">
+            By submitting, you agree to our <a href="#" style="color:var(--yellow-600);">Terms of Service</a>.
+            We'll confirm via email and reach you on WhatsApp at <strong>+91 90594 18750</strong>.
+          </p>
+
+        </form>
+      </div>
+
+      <!-- Back link -->
+      <div style="text-align:center;margin-top:28px;">
+        <a href="index.html" style="font-size:14px;color:var(--gray-400);display:inline-flex;align-items:center;gap:6px;transition:color 0.18s ease;" id="backToHomeLink">
+          ← Back to home
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Toast Notification ───────────────────────────────────────────────────── -->
+  <div class="toast" id="toast" role="alert" aria-live="polite">
+    <div class="toast-icon" id="toastIcon">✅</div>
+    <div>
+      <div class="toast-title" id="toastTitle">Order Submitted!</div>
+      <div class="toast-msg" id="toastMsg">We'll send a confirmation email shortly.</div>
+    </div>
+  </div>
+
+  <!-- Footer (minimal) -->
+  <footer class="footer" style="padding:32px 0;">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2025 QuickAcad Services. All rights reserved.</p>
+    <a href="https://wa.me/919059418750" class="whatsapp-btn" id="orderFooterWA" target="_blank" rel="noopener noreferrer" style="margin-top:0;">
+          💬 Questions? Chat on WhatsApp
+        </a>
+        <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-left:auto;">© 2025 contactforservices</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/order.js"></script>
+</body>
+</html>
