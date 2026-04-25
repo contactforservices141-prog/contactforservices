@@ -5,11 +5,11 @@
 // ── Pricing Table ─────────────────────────────────────────────────────────────
 // Keys MUST match the option values in order.html exactly (case-sensitive)
 const PRICES = {
-  'Reports':             { '1day': 150, 'halfday': 200, '1hour': 250, '30min': 300 },
-  'PPT':                 { '1day': 100, 'halfday': 150, '1hour': 200, '30min': 250 },
-  'Abstract':            { flat: 80 },
+  'Reports':             { '2day': 150, '1day': 200, 'halfday': 250, '1hour': 300, '30min': 350 },
+  'PPT':                 { '2day': 100, '1day': 150, 'halfday': 200, '1hour': 250, '30min': 300 },
+  'Abstract':            { flat: 59 },
   'ECE Projects':        { basic: 300, medium: 450, complex: 600 },
-  'Plagiarism Checking': { flat: 60 },
+  'Plagiarism Checking': { flat: 20 },
 };
 
 const FLAT_SERVICES       = ['Abstract', 'Plagiarism Checking'];
@@ -116,7 +116,7 @@ function updatePrice() {
   } else {
     // Timed services
     if (delivery && table[delivery] !== undefined) {
-      const timeLabels = { '1day': '1 Day', halfday: 'Half Day (12 hrs)', '1hour': '1 Hour', '30min': '30 Minutes' };
+      const timeLabels = { '2day': '2 Days', '1day': '1 Day', halfday: '12 Hours', '1hour': '1 Hour', '30min': '30 Minutes' };
       priceValue.textContent = `₹${table[delivery]}`;
       priceNote.textContent  = `Delivery in ${timeLabels[delivery] || delivery}`;
     } else {
