@@ -273,7 +273,7 @@ if (orderForm) {
       }
 
       if (data.success) {
-        showToast('success', '✅ Order Submitted!', data.message || 'Check your email for confirmation. We'll be in touch shortly!');
+        showToast('success', '✅ Order Submitted!', data.message || "Check your email for confirmation. We'll be in touch shortly!");
         orderForm.reset();
         selectedFiles = [];
         renderFileList();
