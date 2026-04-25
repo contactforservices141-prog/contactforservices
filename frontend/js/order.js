@@ -1,8 +1,9 @@
 /* ═══════════════════════════════════════════════════════
-   QuickAcad Services — Order Page JS
+   contactforservices — Order Page JS (fully debugged)
    ═══════════════════════════════════════════════════════ */
 
-// ── Pricing Table ────────────────────────────────────────
+// ── Pricing Table ─────────────────────────────────────────────────────────────
+// Keys MUST match the option values in order.html exactly (case-sensitive)
 const PRICES = {
   'Reports':             { '1day': 150, 'halfday': 200, '1hour': 250, '30min': 300 },
   'PPT':                 { '1day': 100, 'halfday': 150, '1hour': 200, '30min': 250 },
@@ -11,32 +12,38 @@ const PRICES = {
   'Plagiarism Checking': { flat: 60 },
 };
 
-const FLAT_SERVICES      = ['Abstract', 'Plagiarism Checking'];
+const FLAT_SERVICES       = ['Abstract', 'Plagiarism Checking'];
 const COMPLEXITY_SERVICES = ['ECE Projects'];
 const TIMED_SERVICES      = ['Reports', 'PPT'];
 
-// ── DOM refs ─────────────────────────────────────────────
-const serviceSelect    = document.getElementById('fieldService');
-const deliveryGroup    = document.getElementById('deliveryGroup');
-const complexityGroup  = document.getElementById('complexityGroup');
-const deliverySelect   = document.getElementById('fieldDelivery');
-const complexitySelect = document.getElementById('fieldComplexity');
-const priceValue       = document.getElementById('priceValue');
-const priceNote        = document.getElementById('priceNote');
-const fileInput        = document.getElementById('fieldFiles');
-const fileList         = document.getElementById('fileList');
-const fileUploadArea   = document.getElementById('fileUploadArea');
-const orderForm        = document.getElementById('orderForm');
-const submitBtn        = document.getElementById('submitBtn');
-const submitBtnText    = document.getElementById('submitBtnText');
-const toast            = document.getElementById('toast');
-const toastTitle       = document.getElementById('toastTitle');
-const toastMsg         = document.getElementById('toastMsg');
-const toastIcon        = document.getElementById('toastIcon');
+// ── Safe DOM refs (guard against null) ────────────────────────────────────────
+function el(id) {
+  const e = document.getElementById(id);
+  if (!e) console.warn(`[order.js] Element #${id} not found`);
+  return e;
+}
 
-// ── Navbar hamburger ─────────────────────────────────────
-const hamburgerBtn = document.getElementById('hamburgerBtn');
-const mobileMenu   = document.getElementById('mobileMenu');
+const serviceSelect    = el('fieldService');
+const deliveryGroup    = el('deliveryGroup');
+const complexityGroup  = el('complexityGroup');
+const deliverySelect   = el('fieldDelivery');
+const complexitySelect = el('fieldComplexity');
+const priceValue       = el('priceValue');
+const priceNote        = el('priceNote');
+const fileInput        = el('fieldFiles');
+const fileList         = el('fileList');
+const fileUploadArea   = el('fileUploadArea');
+const orderForm        = el('orderForm');
+const submitBtn        = el('submitBtn');
+const submitBtnText    = el('submitBtnText');
+const toast            = el('toast');
+const toastTitle       = el('toastTitle');
+const toastMsg         = el('toastMsg');
+const toastIcon        = el('toastIcon');
+
+// ── Navbar hamburger ──────────────────────────────────────────────────────────
+const hamburgerBtn = el('hamburgerBtn');
+const mobileMenu   = el('mobileMenu');
 if (hamburgerBtn && mobileMenu) {
   hamburgerBtn.addEventListener('click', () => {
     const isOpen = mobileMenu.classList.toggle('open');
@@ -45,46 +52,39 @@ if (hamburgerBtn && mobileMenu) {
   });
 }
 
-// ── Pre-fill is done AFTER function definitions (see below updatePrice)
-
-// ── Service change handler ───────────────────────────────
+// ── Service change handler ────────────────────────────────────────────────────
 function handleServiceChange(service) {
   const isFlat       = FLAT_SERVICES.includes(service);
   const isComplexity = COMPLEXITY_SERVICES.includes(service);
   const isTimed      = TIMED_SERVICES.includes(service);
 
   // Show/hide correct dropdowns
-  deliveryGroup.style.display   = isTimed ? '' : 'none';
-  complexityGroup.style.display = isComplexity ? '' : 'none';
+  if (deliveryGroup)   deliveryGroup.style.display   = isTimed ? '' : 'none';
+  if (complexityGroup) complexityGroup.style.display = isComplexity ? '' : 'none';
 
-  // Reset selections & fix name attrs so only the active one gets submitted
+  // Fix name attrs so only the active one gets submitted
   if (isTimed) {
-    deliverySelect.name   = 'deliveryTime';
-    complexitySelect.name = '_unused';
-    complexitySelect.value = '';
+    if (deliverySelect)   deliverySelect.name   = 'deliveryTime';
+    if (complexitySelect) { complexitySelect.name = '_unused'; complexitySelect.value = ''; }
   } else if (isComplexity) {
-    complexitySelect.name = 'deliveryTime';
-    deliverySelect.name   = '_unused';
-    deliverySelect.value  = '';
+    if (complexitySelect) complexitySelect.name = 'deliveryTime';
+    if (deliverySelect)   { deliverySelect.name = '_unused'; deliverySelect.value = ''; }
   } else {
-    // flat
-    deliverySelect.name   = '_unused';
-    complexitySelect.name = '_unused';
-    deliverySelect.value  = '';
-    complexitySelect.value = '';
+    // flat — no delivery needed
+    if (deliverySelect)   { deliverySelect.name = '_unused'; deliverySelect.value = ''; }
+    if (complexitySelect) { complexitySelect.name = '_unused'; complexitySelect.value = ''; }
   }
 
   updatePrice();
 }
 
-serviceSelect.addEventListener('change', () => handleServiceChange(serviceSelect.value));
-deliverySelect.addEventListener('change',    updatePrice);
-complexitySelect.addEventListener('change',  updatePrice);
-
+// ── Price calculation ─────────────────────────────────────────────────────────
 function updatePrice() {
-  const service    = serviceSelect.value;
-  const delivery   = deliverySelect.value;
-  const complexity = complexitySelect.value;
+  if (!priceValue || !priceNote) return;
+
+  const service    = serviceSelect ? serviceSelect.value : '';
+  const delivery   = deliverySelect ? deliverySelect.value : '';
+  const complexity = complexitySelect ? complexitySelect.value : '';
 
   if (!service) {
     priceValue.textContent = '—';
@@ -105,8 +105,8 @@ function updatePrice() {
 
   } else if (COMPLEXITY_SERVICES.includes(service)) {
     if (complexity && table[complexity] !== undefined) {
-      priceValue.textContent = `₹${table[complexity]}`;
       const labels = { basic: 'Basic', medium: 'Medium', complex: 'Complex' };
+      priceValue.textContent = `₹${table[complexity]}`;
       priceNote.textContent  = `${labels[complexity] || complexity} complexity project`;
     } else {
       priceValue.textContent = '₹300 – ₹600';
@@ -127,9 +127,14 @@ function updatePrice() {
   }
 }
 
-// ── Pre-fill service from URL query param ─────────────────
-// Must run after handleServiceChange & updatePrice are defined
+// Attach price listeners
+if (serviceSelect)    serviceSelect.addEventListener('change', () => handleServiceChange(serviceSelect.value));
+if (deliverySelect)   deliverySelect.addEventListener('change', updatePrice);
+if (complexitySelect) complexitySelect.addEventListener('change', updatePrice);
+
+// ── Pre-fill service from URL query param ─────────────────────────────────────
 (function prefillService() {
+  if (!serviceSelect) return;
   const params  = new URLSearchParams(window.location.search);
   const service = params.get('service');
   if (service) {
@@ -142,32 +147,30 @@ function updatePrice() {
   }
 })();
 
-// ── File Upload ──────────────────────────────────────────
+// Run once on page load to set initial state
+handleServiceChange(serviceSelect ? serviceSelect.value : '');
+
+// ── File Upload ───────────────────────────────────────────────────────────────
 let selectedFiles = [];
 
-fileInput.addEventListener('change', () => {
-  handleFiles(Array.from(fileInput.files));
-});
+if (fileInput) {
+  fileInput.addEventListener('change', () => handleFiles(Array.from(fileInput.files)));
+}
 
-// Drag & drop
-fileUploadArea.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  fileUploadArea.classList.add('dragover');
-});
-
-fileUploadArea.addEventListener('dragleave', () => {
-  fileUploadArea.classList.remove('dragover');
-});
-
-fileUploadArea.addEventListener('drop', (e) => {
-  e.preventDefault();
-  fileUploadArea.classList.remove('dragover');
-  const dropped = Array.from(e.dataTransfer.files);
-  handleFiles(dropped);
-});
+if (fileUploadArea) {
+  fileUploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    fileUploadArea.classList.add('dragover');
+  });
+  fileUploadArea.addEventListener('dragleave', () => fileUploadArea.classList.remove('dragover'));
+  fileUploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileUploadArea.classList.remove('dragover');
+    handleFiles(Array.from(e.dataTransfer.files));
+  });
+}
 
 function handleFiles(newFiles) {
-  // Merge without duplicates (by name+size)
   newFiles.forEach(file => {
     const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
     if (!exists) selectedFiles.push(file);
@@ -182,12 +185,13 @@ function formatBytes(bytes) {
 }
 
 function getFileIcon(name) {
-  const ext = name.split('.').pop().toLowerCase();
-  const icons = { pdf: '📄', doc: '📝', docx: '📝', ppt: '📊', pptx: '📊', txt: '📃', zip: '🗜️', rar: '🗜️', png: '🖼️', jpg: '🖼️', jpeg: '🖼️', xlsx: '📊', csv: '📊' };
+  const ext   = name.split('.').pop().toLowerCase();
+  const icons = { pdf:'📄', doc:'📝', docx:'📝', ppt:'📊', pptx:'📊', txt:'📃', zip:'🗜️', rar:'🗜️', png:'🖼️', jpg:'🖼️', jpeg:'🖼️', xlsx:'📊', csv:'📊' };
   return icons[ext] || '📁';
 }
 
 function renderFileList() {
+  if (!fileList) return;
   fileList.innerHTML = '';
   selectedFiles.forEach((file, index) => {
     const item = document.createElement('div');
@@ -207,88 +211,108 @@ window.removeFile = function(index) {
   renderFileList();
 };
 
-// ── Form Validation ──────────────────────────────────────
+// ── Form Validation ───────────────────────────────────────────────────────────
 function validateForm() {
-  const service  = serviceSelect.value;
-  const name     = document.getElementById('fieldName').value.trim();
-  const email    = document.getElementById('fieldEmail').value.trim();
-  const phone    = document.getElementById('fieldPhone').value.trim();
-  const topic    = document.getElementById('fieldTopic').value.trim();
-  const desc     = document.getElementById('fieldDescription').value.trim();
+  const service = serviceSelect ? serviceSelect.value : '';
+  const name    = (el('fieldName')        || {}).value?.trim();
+  const email   = (el('fieldEmail')       || {}).value?.trim();
+  const phone   = (el('fieldPhone')       || {}).value?.trim();
+  const topic   = (el('fieldTopic')       || {}).value?.trim();
+  const desc    = (el('fieldDescription') || {}).value?.trim();
 
-  if (!name)    return 'Please enter your full name.';
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Please enter a valid email address.';
-  if (!phone || phone.length < 10) return 'Please enter a valid phone number.';
-  if (!service) return 'Please select a service.';
-  if (TIMED_SERVICES.includes(service) && !deliverySelect.value)       return 'Please select a delivery time.';
-  if (COMPLEXITY_SERVICES.includes(service) && !complexitySelect.value) return 'Please select a complexity level.';
-  if (!topic)   return 'Please enter the topic/title.';
-  if (!desc)    return 'Please describe your requirements.';
+  if (!name)                                                           return 'Please enter your full name.';
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))           return 'Please enter a valid email address.';
+  if (!phone || phone.length < 10)                                    return 'Please enter a valid phone number.';
+  if (!service)                                                        return 'Please select a service.';
+  if (TIMED_SERVICES.includes(service) && !deliverySelect?.value)     return 'Please select a delivery time.';
+  if (COMPLEXITY_SERVICES.includes(service) && !complexitySelect?.value) return 'Please select a complexity level.';
+  if (!topic)                                                          return 'Please enter the topic/title.';
+  if (!desc)                                                           return 'Please describe your requirements.';
 
   return null;
 }
 
-// ── Form Submission ───────────────────────────────────────
-orderForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
+// ── Form Submission ───────────────────────────────────────────────────────────
+if (orderForm) {
+  orderForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-  const error = validateForm();
-  if (error) {
-    showToast('error', '⚠️ Incomplete Form', error);
-    return;
-  }
-
-  // Build FormData
-  const formData = new FormData();
-  formData.append('name',         document.getElementById('fieldName').value.trim());
-  formData.append('email',        document.getElementById('fieldEmail').value.trim());
-  formData.append('phone',        document.getElementById('fieldPhone').value.trim());
-  formData.append('service',      serviceSelect.value);
-  formData.append('deliveryTime', deliverySelect.value || complexitySelect.value || 'flat');
-  formData.append('topic',        document.getElementById('fieldTopic').value.trim());
-  formData.append('description',  document.getElementById('fieldDescription').value.trim());
-
-  selectedFiles.forEach(file => formData.append('files', file));
-
-  // UI loading state
-  submitBtn.disabled = true;
-  submitBtnText.textContent = '⏳ Submitting...';
-
-  try {
-    const res  = await fetch('/api/order', { method: 'POST', body: formData });
-    const data = await res.json();
-
-    if (data.success) {
-      showToast('success', '✅ Order Submitted!', data.message || 'Check your email for confirmation. We'll be in touch shortly!');
-      orderForm.reset();
-      selectedFiles = [];
-      renderFileList();
-      priceValue.textContent = '—';
-      priceNote.textContent  = 'Select service & delivery time';
-      deliveryGroup.style.display   = '';
-      complexityGroup.style.display = 'none';
-    } else {
-      showToast('error', '⚠️ Something Went Wrong', data.message || 'Please try again or contact us on WhatsApp.');
+    const error = validateForm();
+    if (error) {
+      showToast('error', '⚠️ Incomplete Form', error);
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    showToast('error', '⚠️ Network Error', 'Could not submit. Please check your connection or WhatsApp us directly.');
-  } finally {
-    submitBtn.disabled    = false;
-    submitBtnText.textContent = '🚀 Submit Order';
-  }
-});
 
-// ── Toast Notification ────────────────────────────────────
+    // Build FormData
+    const formData = new FormData();
+    formData.append('name',         (el('fieldName')        || {}).value?.trim());
+    formData.append('email',        (el('fieldEmail')       || {}).value?.trim());
+    formData.append('phone',        (el('fieldPhone')       || {}).value?.trim());
+    formData.append('service',      serviceSelect.value);
+    formData.append('deliveryTime', (deliverySelect?.value || complexitySelect?.value || 'flat'));
+    formData.append('topic',        (el('fieldTopic')        || {}).value?.trim());
+    formData.append('description',  (el('fieldDescription') || {}).value?.trim());
+    selectedFiles.forEach(file => formData.append('files', file));
+
+    // UI loading state
+    if (submitBtn)     submitBtn.disabled = true;
+    if (submitBtnText) submitBtnText.textContent = '⏳ Submitting...';
+
+    try {
+      const res  = await fetch('/api/order', { method: 'POST', body: formData });
+
+      // Guard against non-JSON error responses (e.g. Vercel 500 HTML pages)
+      const contentType = res.headers.get('content-type') || '';
+      let data;
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        console.error('Non-JSON response:', text);
+        data = { success: false, message: 'Server error. Please try again or contact us on WhatsApp.' };
+      }
+
+      if (data.success) {
+        showToast('success', '✅ Order Submitted!', data.message || 'Check your email for confirmation. We'll be in touch shortly!');
+        orderForm.reset();
+        selectedFiles = [];
+        renderFileList();
+        if (priceValue) priceValue.textContent = '—';
+        if (priceNote)  priceNote.textContent  = 'Select service & delivery time';
+        if (deliveryGroup)   deliveryGroup.style.display   = '';
+        if (complexityGroup) complexityGroup.style.display = 'none';
+      } else {
+        showToast('error', '⚠️ Something Went Wrong', data.message || 'Please try again or contact us on WhatsApp.');
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+      showToast('error', '⚠️ Network Error', 'Could not submit. Please check your connection or WhatsApp us directly.');
+    } finally {
+      if (submitBtn)     submitBtn.disabled = false;
+      if (submitBtnText) submitBtnText.textContent = '🚀 Submit Order';
+    }
+  });
+}
+
+// ── Toast Notification ────────────────────────────────────────────────────────
 let toastTimeout;
 function showToast(type, title, msg) {
+  if (!toast || !toastTitle || !toastMsg || !toastIcon) {
+    // Fallback if toast elements missing
+    alert(`${title}: ${msg}`);
+    return;
+  }
   toastIcon.textContent  = type === 'success' ? '✅' : '⚠️';
   toastTitle.textContent = title;
   toastMsg.textContent   = msg;
-  toast.classList.remove('error');
+  toast.classList.remove('error', 'show');
+
+  // Force reflow so CSS transition replays even if toast was just shown
+  void toast.offsetWidth;
+
   if (type === 'error') toast.classList.add('error');
-  
   toast.classList.add('show');
+
   clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => toast.classList.remove('show'), 6000);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 7000);
 }

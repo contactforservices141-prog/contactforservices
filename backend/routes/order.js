@@ -46,15 +46,17 @@ async function sendViaResend({ to, subject, html, attachments = [] }) {
 
 // ── Helper: Price Labels ───────────────────────────────────────────────────────
 const PRICE_TABLE = {
-  reports:     { '1day': '₹150', halfday: '₹200', '1hour': '₹250', '30min': '₹300' },
-  ppt:         { '1day': '₹100', halfday: '₹150', '1hour': '₹200', '30min': '₹250' },
-  abstract:    { flat: '₹80' },
-  ece:         { basic: '₹300', medium: '₹450', complex: '₹600' },
-  plagiarism:  { flat: '₹60' },
+  'reports':            { '1day': '₹150', halfday: '₹200', '1hour': '₹250', '30min': '₹300' },
+  'ppt':                { '1day': '₹100', halfday: '₹150', '1hour': '₹200', '30min': '₹250' },
+  'abstract':           { flat: '₹80' },
+  'ece projects':       { basic: '₹300', medium: '₹450', complex: '₹600' },
+  'plagiarism checking':{ flat: '₹60' },
 };
 
 function getPrice(service, deliveryTime) {
-  const svc = PRICE_TABLE[service?.toLowerCase()];
+  // Normalize: lowercase + trim to match table keys reliably
+  const key = service?.toLowerCase().trim();
+  const svc = PRICE_TABLE[key];
   if (!svc) return 'As discussed';
   return svc[deliveryTime] || svc['flat'] || 'As discussed';
 }

@@ -21,9 +21,8 @@ app.use('/api/order', orderRouter);
 // ── DEBUG: Check env vars are loaded (remove after confirming) ──────────────
 app.get('/api/debug-env', (req, res) => {
   res.json({
-    SMTP_USER:   process.env.SMTP_USER   ? `set (${process.env.SMTP_USER})` : '❌ MISSING',
-    SMTP_PASS:   process.env.SMTP_PASS   ? `set (length=${process.env.SMTP_PASS.length})` : '❌ MISSING',
-    ADMIN_EMAIL: process.env.ADMIN_EMAIL ? `set (${process.env.ADMIN_EMAIL})` : '❌ MISSING',
+    RESEND_API_KEY: process.env.RESEND_API_KEY ? `set (length=${process.env.RESEND_API_KEY.length})` : '❌ MISSING',
+    ADMIN_EMAIL:    process.env.ADMIN_EMAIL    ? `set (${process.env.ADMIN_EMAIL})`                  : '❌ MISSING',
   });
 });
 
